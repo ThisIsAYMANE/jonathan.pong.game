@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashPongBet Polygon Mainnet Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.8.1/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { margin: 5px; padding: 12px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; transition: all 0.3s; }
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .log-entry { margin: 3px 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
+        .timestamp { color: #666; font-weight: bold; }
+        #transactionLogs { height: 500px; overflow-y: auto; border: 2px solid #ccc; padding: 15px; background: #000; color: #00ff00; border-radius: 5px; }
+        .button-group { margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px; }
+        .primary { background: linear-gradient(45deg, #007bff, #0056b3); color: white; }
+        .secondary { background: linear-gradient(45deg, #6c757d, #545b62); color: white; }
+        .success { background: linear-gradient(45deg, #28a745, #1e7e34); color: white; }
+        .warning { background: linear-gradient(45deg, #ffc107, #e0a800); color: black; }
+        .danger { background: linear-gradient(45deg, #dc3545, #c82333); color: white; }
+        .info { background: linear-gradient(45deg, #17a2b8, #138496); color: white; }
+        .mainnet-warning { background: linear-gradient(45deg, #ff6b35, #f7931e); color: white; }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        h3 { color: #555; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .status-info { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .highlight { background: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; }
+        .mainnet-alert { background: #ff6b35; color: white; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+        .cost-warning { background: #dc3545; color: white; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        #disconnectBtn { 
+            background: linear-gradient(45deg, #ff3547, #c91111);
+            animation: pulseWarning 2s infinite;
+        }
+        @keyframes pulseWarning {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes blinkWarning {
+            0%, 100% { background-color: white; }
+            50% { background-color: #fff3cd; }
+        }
+        body.forfeit-warning {
+            animation: blinkWarning 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏓 CashPongBet - Polygon Mainnet Interface</h1>
+        
+        <div class="mainnet-alert">
+            <strong>⚠️ POLYGON MAINNET - REAL MONEY!</strong><br>
+            🚨 You are using REAL MATIC tokens on Polygon Mainnet<br>
+            💰 All transactions cost real money - be careful!<br>
+            🔐 Double-check all addresses and amounts before confirming
+        </div>
+
+        <div class="highlight">
+            <strong>🔧 Mainnet Configuration:</strong><br>
+            ✅ Network: Polygon Mainnet (Chain ID: 137)<br>
+            ✅ Contract: 0xCc50ce04FF06446E0Af663655A4F2B4dFEDb9140<br>
+            ✅ Owner: 0x44c994c689ab1eA1c5052477e2F0D5b1fd0D04B8<br>
+            ✅ Deployed: August 2, 2025<br>
+            ⚠️ Real MATIC - Higher bet amounts recommended
+        </div>
+
+        <div class="section">
+            <h3>📱 Wallet & Network</h3>
+            <div class="button-group">
+                <button id="connectWallet" class="primary">🔗 Connect Wallet</button>
+                <button id="checkBalance" class="info">💰 Check MATIC Balance</button>
+                <button id="addPolygonNetwork" class="mainnet-warning">🌐 Add Polygon Mainnet</button>
+            </div>
+            <div id="walletInfo" class="status-info"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔌 Session</h3>
+            <div class="button-group">
+                <button id="disconnectBtn" class="danger">🚪 Déconnecter (Forfait)</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📋 Contract Management</h3>
+            <div class="cost-warning">
+                💸 <strong>Mainnet Cost Warning:</strong> Contract interactions cost real MATIC. Test thoroughly on testnet first!
+            </div>
+            <div class="button-group">
+                <button id="loadContract" class="primary">📄 Load Contract</button>
+                <button id="testContract" class="secondary">🔍 Test Deployment</button>
+                <button id="testParameters" class="info">📊 Check Parameters</button>
+            </div>
+            <div class="button-group">
+                <button id="simpleContractTest" class="warning">🧪 Contract Analysis</button>
+            </div>
+            <div id="contractInfo" class="status-info"></div>
+        </div>
+
+        <div class="section">
+            <h3>🎮 Game Actions</h3>
+            <div class="cost-warning">
+                💰 <strong>Recommended Mainnet Bet:</strong> Minimum 0.01 MATIC (≈$0.01 USD)
+            </div>
+            <div class="button-group">
+                <button id="createMainnetRoom" class="success">🎯 Create Mainnet Room</button>
+                <button id="joinMainnetRoom" class="success">🤝 Join Mainnet Room</button>
+                <button id="checkRoomStatus" class="info">📊 Check Room Status</button>
+            </div>
+            <div class="button-group">
+                <button id="scorePoint" class="primary">⚡ Score Point</button>
+                <button id="claimVictory" class="warning">⏰ Claim Victory</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📜 Transaction Logs</h3>
+            <button onclick="document.getElementById('transactionLogs').innerHTML = ''" class="danger" style="float: right;">🗑️ Clear Logs</button>
+            <div id="transactionLogs"></div>
+        </div>
+    </div>
+
+    <script>
+        class CashPongBetMainnet {
+            constructor() {
+                this.contractAddress = "0xCc50ce04FF06446E0Af663655A4F2B4dFEDb9140";
+                this.contract = null;
+                this.provider = null;
+                this.signer = null;
+                this.currentRoomId = null;
+                this.roomFinished = false;
+                
+                // Mainnet configuration
+                this.networkConfig = {
+                    chainId: 137, // Polygon Mainnet
+                    name: "Polygon Mainnet",
+                    rpcUrl: "https://polygon-rpc.com",
+                    blockExplorer: "https://polygonscan.com",
+                    nativeCurrency: {
+                        name: "MATIC",
+                        symbol: "MATIC",
+                        decimals: 18
+                    }
+                };
+                
+                // Player addresses
+                this.PLAYERS = {
+                    PLAYER1: "0xE6264CEEC98932a778BE80B6C69F37D3e92c1086",
+                    PLAYER2: "0x4848F55C17C2C0E5215DEC3953FbB43caBB59BDa"
+                };
+                
+                this.init();
+                this.startInactivityMonitor();
+            }
+        
+            async init() {
+                try {
+                    await this.loadContractABI();
+                    this.setupEventListeners();
+                    this.setupDisconnectHandlers();
+                    this.logTransaction("✅ Polygon Mainnet interface initialized");
+                    this.logTransaction("⚠️ Remember: This uses REAL MATIC tokens!");
+                    this.logTransaction("👥 Registered Players:");
+                    this.logTransaction(`   PLAYER1: ${this.PLAYERS.PLAYER1}`);
+                    this.logTransaction(`   PLAYER2: ${this.PLAYERS.PLAYER2}`);
+                } catch (error) {
+                    this.logTransaction("❌ Initialization failed: " + error.message);
+                }
+            }
+
+            setupDisconnectHandlers() {
+                window.addEventListener('beforeunload', async (e) => {
+                    if (this.currentRoomId && !this.roomFinished) {
+                        e.preventDefault();
+                        await this.handleVoluntaryDisconnect();
+                        window.close();
+                    }
+                });
+
+                document.getElementById('disconnectBtn')?.addEventListener('click', async () => {
+                    if (this.currentRoomId && !this.roomFinished) {
+                        await this.handleVoluntaryDisconnect();
+                    }
+                });
+            }
+
+            async handleVoluntaryDisconnect() {
+    try {
+        this.logTransaction("⚠️ Déconnexion volontaire détectée...");
+
+        const roomId = this.currentRoomId;
+        const room = await this.contract.getRoom(roomId);
+        const now = Math.floor(Date.now() / 1000);
+        const lastAction = Number(room.lastActionTimestamp);
+        const diff = now - lastAction;
+
+        const currentAddress = (await this.signer.getAddress()).toLowerCase();
+        const isPlayerA = currentAddress === room.playerA.toLowerCase();
+        const isPlayerB = currentAddress === room.playerB.toLowerCase();
+
+        this.logTransaction(`🎯 Room ID: ${roomId}`);
+        this.logTransaction(`🙋 You: ${currentAddress}`);
+        this.logTransaction(`👤 PlayerA: ${room.playerA}`);
+        this.logTransaction(`👤 PlayerB: ${room.playerB}`);
+        this.logTransaction(`⏳ Time since last action: ${diff} seconds`);
+
+        if (diff >= 60) {
+            // Adversaire inactif → claim forfait
+            if (isPlayerA && !room.playerBForfeited) {
+                this.logTransaction("⏰ Player B inactif. Requête forfait...");
+                const tx = await this.contract.claimVictoryByForfeit(roomId);
+                await tx.wait();
+                this.roomFinished = true;
+                this.logTransaction("✅ Victoire par forfait !");
+                return;
+            }
+            if (isPlayerB && !room.playerAForfeited) {
+                this.logTransaction("⏰ Player A inactif. Requête forfait...");
+                const tx = await this.contract.claimVictoryByForfeit(roomId);
+                await tx.wait();
+                this.roomFinished = true;
+                this.logTransaction("✅ Victoire par forfait !");
+                return;
+            }
+
+            this.logTransaction("⚠️ Aucun adversaire inactif détecté ou forfait déjà pris.");
+        }
+
+        // Sinon → abandon volontaire
+        if (isPlayerA && !room.playerAForfeited) {
+            this.logTransaction("😔 Vous abandonnez volontairement (Player A)");
+            const tx = await this.contract.voluntaryForfeit(roomId);
+            await tx.wait();
+            this.roomFinished = true;
+            this.logTransaction("✅ Forfait volontaire confirmé.");
+            return;
+        }
+        if (isPlayerB && !room.playerBForfeited) {
+            this.logTransaction("😔 Vous abandonnez volontairement (Player B)");
+            const tx = await this.contract.voluntaryForfeit(roomId);
+            await tx.wait();
+            this.roomFinished = true;
+            this.logTransaction("✅ Forfait volontaire confirmé.");
+            return;
+        }
+
+        this.logTransaction("❌ Impossible de forfeit : déjà effectué ou conditions non remplies.");
+
+    } catch (error) {
+        this.logTransaction(`❌ Échec du forfait: ${error?.message || error}`);
+    }
+}
+
+        
+            async loadContractABI() {
+                this.contractABI = [
+                    "function owner() external view returns (address)",
+                    "function roomCounter() external view returns (uint256)",
+                    "function createRoom(address _opponent) external payable",
+                    "function joinRoom(uint256 roomId) external payable",
+                    "function scorePoint(uint256 roomId, address scorer) external",
+                    "function claimVictoryByForfeit(uint256 roomId) external",
+                    "function voluntaryForfeit(uint256 roomId) external", 
+                    "function ownerForceEnd(uint256 roomId) external",
+                    "function getRoom(uint256 roomId) external view returns (tuple(address playerA, address playerB, uint256 betAmount, uint8 scoreA, uint8 scoreB, bool playerAJoined, bool playerBJoined, bool isFinished, uint256 lastActionTimestamp, bool playerAForfeited, bool playerBForfeited))",
+                    "function getBalance() external view returns (uint256)",
+                    "event RoomCreated(uint256 roomId, address playerA, address playerB, uint256 betAmount)",
+                    "event PlayerJoined(uint256 roomId, address player)",
+                    "event PointScored(uint256 roomId, address scorer, uint8 scoreA, uint8 scoreB)",
+                    "event MatchEnded(uint256 roomId, address winner)",
+                    "event VictoryByForfeit(uint256 roomId, address winner)",
+                    "event OwnerForcedEnd(uint256 roomId)",
+                    "event WinningsPaid(uint256 roomId, address winner, uint256 amount)"
+                ];
+            }
+        
+            setupEventListeners() {
+                const addListener = (id, handler) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('click', handler);
+                        console.log(`✅ Event listener added for ${id}`);
+                    } else {
+                        console.warn(`⚠️ Element with id '${id}' not found`);
+                    }
+                };
+        
+                addListener('connectWallet', () => this.connectWallet());
+                addListener('checkBalance', () => this.checkWalletBalance());
+                addListener('addPolygonNetwork', () => this.addPolygonNetwork());
+                addListener('loadContract', () => this.loadContract());
+                addListener('testContract', () => this.testContractDeployment());
+                addListener('simpleContractTest', () => this.simpleContractTest());
+                addListener('testParameters', () => this.testContractParameters());
+                addListener('createMainnetRoom', () => this.createMainnetRoom());
+                addListener('joinMainnetRoom', () => this.joinMainnetRoom());
+                addListener('checkRoomStatus', () => this.checkRoomStatus());
+                addListener('scorePoint', () => this.scoreTestPoint());
+                addListener('claimVictory', () => this.claimVictoryTest());
+            }
+        
+            async addPolygonNetwork() {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x89', // 137 in hex
+                            chainName: 'Polygon Mainnet',
+                            nativeCurrency: {
+                                name: 'MATIC',
+                                symbol: 'MATIC',
+                                decimals: 18
+                            },
+                            rpcUrls: ['https://polygon-rpc.com/'],
+                            blockExplorerUrls: ['https://polygonscan.com/']
+                        }]
+                    });
+                    this.logTransaction("✅ Polygon Mainnet added to wallet");
+                } catch (error) {
+                    this.logTransaction("❌ Failed to add network: " + error.message);
+                }
+            }
+        
+            async connectWallet() {
+                try {
+                    if (typeof window.ethereum === 'undefined') {
+                        this.logTransaction("❌ MetaMask not found. Please install MetaMask.");
+                        return;
+                    }
+        
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const address = accounts[0];
+        
+                    this.provider = new ethers.BrowserProvider(window.ethereum);
+                    this.signer = await this.provider.getSigner();
+        
+                    const network = await this.provider.getNetwork();
+                    if (network.chainId !== 137n) {
+                        this.logTransaction("⚠️ Please switch to Polygon Mainnet (Chain ID: 137)");
+                        this.logTransaction("💡 Click 'Add Polygon Mainnet' button to add the network");
+                        return;
+                    }
+        
+                    this.logTransaction("✅ Connected to Polygon Mainnet: " + address);
+                    this.updateWalletInfo(address, network);
+        
+                } catch (error) {
+                    this.logTransaction("❌ Error connecting wallet: " + error.message);
+                }
+            }
+        
+            async loadContract() {
+                try {
+                    if (!this.provider) {
+                        this.logTransaction("❌ Please connect wallet first");
+                        return;
+                    }
+
+                    if (this.contractAddress === "0xCc50ce04FF06446E0Af663655A4F2B4dFEDb9140") {
+                        this.logTransaction("✅ Using deployed mainnet contract");
+                    } else {
+                        this.logTransaction("❌ Contract address mismatch");
+                        return;
+                    }
+        
+                    this.contract = new ethers.Contract(this.contractAddress, this.contractABI, this.signer);
+                    this.logTransaction("✅ Mainnet contract loaded: " + this.contractAddress);
+                    this.logTransaction("🔗 View on PolygonScan: https://polygonscan.com/address/" + this.contractAddress);
+                    this.updateContractInfo();
+        
+                } catch (error) {
+                    this.logTransaction("❌ Error loading contract: " + error.message);
+                }
+            }
+        
+            async checkWalletBalance() {
+                try {
+                    if (!this.provider || !this.signer) {
+                        this.logTransaction("❌ Please connect wallet first");
+                        return;
+                    }
+        
+                    const address = await this.signer.getAddress();
+                    const balance = await this.provider.getBalance(address);
+                    const balanceMatic = ethers.formatEther(balance);
+                    
+                    this.logTransaction(`💰 Mainnet Balance:`);
+                    this.logTransaction(`   Address: ${address}`);
+                    this.logTransaction(`   Balance: ${balanceMatic} MATIC`);
+                    
+                    // Get MATIC price (approximate)
+                    const maticValue = parseFloat(balanceMatic) * 1.0; // Approximate $1 per MATIC
+                    this.logTransaction(`   Approximate Value: $${maticValue.toFixed(2)} USD`);
+                    
+                    if (parseFloat(balanceMatic) < 0.1) {
+                        this.logTransaction(`⚠️ Low balance! Consider adding more MATIC for mainnet transactions`);
+                    }
+        
+                } catch (error) {
+                    this.logTransaction("❌ Failed to get balance: " + error.message);
+                }
+            }
+
+            async createMainnetRoom() {
+                try {
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+                    
+                    // Get opponent address from user
+                    const opponentAddress = prompt("Enter opponent's wallet address:");
+                    if (!opponentAddress || !ethers.isAddress(opponentAddress)) {
+                        this.logTransaction("❌ Invalid opponent address");
+                        return;
+                    }
+                    
+                    // Get bet amount from user (minimum 0.01 MATIC for mainnet)
+                    const betAmountStr = prompt("Enter bet amount in MATIC (minimum 0.01):", "0.01");
+                    const betAmount = ethers.parseEther(betAmountStr || "0.01");
+                    
+                    if (parseFloat(betAmountStr) < 0.01) {
+                        this.logTransaction("❌ Minimum bet is 0.01 MATIC on mainnet");
+                        return;
+                    }
+                    
+                    // Confirmation dialog
+                    const confirmed = confirm(
+                        `Create room with:\n` +
+                        `Opponent: ${opponentAddress}\n` +
+                        `Bet: ${betAmountStr} MATIC\n` +
+                        `This will cost real money. Continue?`
+                    );
+                    
+                    if (!confirmed) {
+                        this.logTransaction("❌ Room creation cancelled by user");
+                        return;
+                    }
+                    
+                    this.logTransaction(`🎮 Creating mainnet room...`);
+                    this.logTransaction(`   Opponent: ${opponentAddress}`);
+                    this.logTransaction(`   Bet: ${betAmountStr} MATIC`);
+                    this.logTransaction(`⚠️ This transaction costs real MATIC!`);
+                    
+                    const tx = await this.contract.createRoom(opponentAddress, { value: betAmount });
+                    this.logTransaction(`📝 Transaction submitted: ${tx.hash}`);
+                    this.logTransaction(`🔗 View on PolygonScan: https://polygonscan.com/tx/${tx.hash}`);
+                    this.logTransaction(`⏳ Waiting for confirmation...`);
+                    
+                    const receipt = await tx.wait();
+                    this.logTransaction(`✅ Room created! Block: ${receipt.blockNumber}`);
+                    
+                    // Get room ID from events
+                    const roomCreatedEvent = receipt.logs.find(log => {
+                        try {
+                            const parsed = this.contract.interface.parseLog(log);
+                            return parsed.name === "RoomCreated";
+                        } catch {
+                            return false;
+                        }
+                    });
+                    
+                    if (roomCreatedEvent) {
+                        const parsed = this.contract.interface.parseLog(roomCreatedEvent);
+                        this.currentRoomId = parsed.args.roomId.toString();
+                        this.roomFinished = false;
+                        this.logTransaction(`🎯 New Room ID: ${this.currentRoomId}`);
+                        this.logTransaction(`💡 Share this Room ID with your opponent`);
+                    }
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Failed to create room: ${error.message}`);
+                    if (error.message.includes("insufficient funds")) {
+                        this.logTransaction(`💡 You need more MATIC to create this room`);
+                    }
+                }
+            }
+
+            async joinMainnetRoom() {
+                try {
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+
+                    const roomIdStr = prompt("Enter Room ID to join:");
+                    if (!roomIdStr) {
+                        this.logTransaction("❌ Room ID required");
+                        return;
+                    }
+
+                    const roomId = parseInt(roomIdStr);
+                    const room = await this.safeGetRoom(roomId);
+
+                    if (!room) {
+                        this.logTransaction(`❌ Room ${roomId} not found`);
+                        return;
+                    }
+
+                    const currentAddress = await this.signer.getAddress();
+                    if (currentAddress.toLowerCase() !== room.playerB.toLowerCase()) {
+                        this.logTransaction(`❌ You are not invited to room ${roomId}`);
+                        return;
+                    }
+
+                    if (room.playerBJoined) {
+                        this.logTransaction(`❌ You have already joined room ${roomId}`);
+                        return;
+                    }
+
+                    const betAmount = room.betAmount;
+                    const betAmountMatic = ethers.formatEther(betAmount);
+
+                    const confirmed = confirm(
+                        `Join room ${roomId}?\n` +
+                        `Required bet: ${betAmountMatic} MATIC\n` +
+                        `This will cost real money. Continue?`
+                    );
+
+                    if (!confirmed) {
+                        this.logTransaction("❌ Join cancelled by user");
+                        return;
+                    }
+
+                    this.logTransaction(`🎮 Joining mainnet room ${roomId}...`);
+                    this.logTransaction(`   Required bet: ${betAmountMatic} MATIC`);
+                    this.logTransaction(`⚠️ This transaction costs real MATIC!`);
+
+                    const tx = await this.contract.joinRoom(roomId, { value: betAmount });
+                    this.logTransaction(`📝 Transaction submitted: ${tx.hash}`);
+                    this.logTransaction(`🔗 View on PolygonScan: https://polygonscan.com/tx/${tx.hash}`);
+                    this.logTransaction(`⏳ Waiting for confirmation...`);
+
+                    const receipt = await tx.wait();
+                    this.logTransaction(`✅ Joined room successfully! Block: ${receipt.blockNumber}`);
+                    this.logTransaction(`🎯 Game is now ready to start!`);
+                    this.currentRoomId = roomId;
+                    this.roomFinished = false;
+
+                } catch (error) {
+                    this.logTransaction(`❌ Failed to join room: ${error.message}`);
+                    if (error.message.includes("insufficient funds")) {
+                        this.logTransaction(`💡 You need more MATIC to join this room`);
+                    }
+                }
+            }
+
+            async testContractDeployment() {
+                try {
+                    this.logTransaction("🔍 Testing mainnet contract deployment...");
+                    
+                    if (!this.provider) {
+                        this.logTransaction("❌ Please connect wallet first");
+                        return;
+                    }
+
+                    if (this.contractAddress === "0xCc50ce04FF06446E0Af663655A4F2B4dFEDb9140") {
+                        this.logTransaction("✅ Using deployed mainnet contract");
+                    } else {
+                        this.logTransaction("❌ Contract address configuration error");
+                        return;
+                    }
+
+                    const code = await this.provider.getCode(this.contractAddress);
+                    
+                    if (code === "0x") {
+                        this.logTransaction("❌ No contract found at this address on Polygon Mainnet");
+                        return;
+                    }
+
+                    this.logTransaction("✅ Contract deployed on Polygon Mainnet");
+                    this.logTransaction(`📄 Contract code length: ${code.length} characters`);
+
+                    this.contract = new ethers.Contract(this.contractAddress, this.contractABI, this.signer);
+                    
+                    await this.safeContractCall("owner", "Getting contract owner");
+                    await this.safeContractCall("roomCounter", "Getting room counter");
+                    await this.safeContractCall("getBalance", "Getting contract balance");
+                    
+                    this.logTransaction("✅ Mainnet contract test completed");
+
+                } catch (error) {
+                    this.logTransaction("❌ Mainnet contract test failed: " + error.message);
+                }
+            }
+
+            async safeContractCall(functionName, description, ...args) {
+                try {
+                    this.logTransaction(`🔍 ${description}...`);
+                    const result = await this.contract[functionName](...args);
+                    
+                    if (functionName === "getBalance" || functionName === "roomCounter") {
+                        if (functionName === "getBalance") {
+                            this.logTransaction(`✅ Contract balance: ${ethers.formatEther(result)} MATIC`);
+                        } else {
+                            this.logTransaction(`✅ Room counter: ${result.toString()}`);
+                        }
+                    } else {
+                        this.logTransaction(`✅ ${functionName}: ${result}`);
+                    }
+                    
+                    return result;
+                } catch (error) {
+                    this.logTransaction(`❌ Failed ${description}: ${error.message.slice(0, 150)}...`);
+                    return null;
+                }
+            }
+
+            async safeGetRoom(roomId) {
+                try {
+                    const room = await this.contract.getRoom(roomId);
+                    if (room.playerA === "0x0000000000000000000000000000000000000000") {
+                        return null;
+                    }
+                    return room;
+                } catch (error) {
+                    this.logTransaction(`⚠️ Could not access room ${roomId}: ${error.message.slice(0, 50)}...`);
+                    return null;
+                }
+            }
+
+            async testContractParameters() {
+                try {
+                    this.logTransaction("🔍 Testing mainnet contract parameters...");
+                    
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+        
+                    const owner = await this.safeContractCall("owner", "Getting owner");
+                    const roomCounter = await this.safeContractCall("roomCounter", "Getting room counter");
+                    const contractBalance = await this.safeContractCall("getBalance", "Getting contract balance");
+        
+                    this.logTransaction(`📋 Mainnet Contract Parameters:`);
+                    if (owner) {
+                        this.logTransaction(`   Owner: ${owner}`);
+                        if (owner === "0x44c994c689ab1eA1c5052477e2F0D5b1fd0D04B8") {
+                            this.logTransaction(`   ✅ Owner matches deployment info`);
+                        }
+                    }
+                    if (roomCounter) this.logTransaction(`   Room Counter: ${roomCounter.toString()}`);
+                    if (contractBalance) {
+                        const balanceMatic = ethers.formatEther(contractBalance);
+                        this.logTransaction(`   Contract Balance: ${balanceMatic} MATIC`);
+                        const usdValue = parseFloat(balanceMatic) * 1.0; // Approximate
+                        this.logTransaction(`   Approximate USD Value: ${usdValue.toFixed(2)}`);
+                    }
+                    this.logTransaction(`   Contract Address: ${this.contractAddress}`);
+                    this.logTransaction(`   Deployed: August 2, 2025`);
+        
+                } catch (error) {
+                    this.logTransaction("❌ Contract parameters test failed: " + error.message);
+                }
+            }
+
+            async simpleContractTest() {
+                try {
+                    this.logTransaction("🧪 STARTING MAINNET CONTRACT ANALYSIS");
+                    this.logTransaction("⚠️  This analyzes the contract WITHOUT spending MATIC");
+                    this.logTransaction("==================================================");
+                    
+                    if (!this.contract) {
+                        this.logTransaction("❌ Contract not loaded");
+                        return;
+                    }
+                    
+                    // Step 1: Test basic contract functions
+                    this.logTransaction("📋 Step 1: Testing basic contract functions...");
+                    const owner = await this.safeContractCall("owner", "Getting contract owner");
+                    const roomCounter = await this.safeContractCall("roomCounter", "Getting room counter");
+                    const contractBalance = await this.safeContractCall("getBalance", "Getting contract balance");
+                    
+                    // Step 2: Verify deployment info
+                    this.logTransaction("📋 Step 2: Verifying deployment info...");
+                    if (owner === "0x44c994c689ab1eA1c5052477e2F0D5b1fd0D04B8") {
+                        this.logTransaction("✅ Owner matches deployment info");
+                    } else {
+                        this.logTransaction("⚠️ Owner doesn't match expected deployer");
+                    }
+                    
+                    // Step 3: Analyze contract state
+                    this.logTransaction("📋 Step 3: Analyzing mainnet contract state...");
+                    const roomCount = roomCounter ? Number(roomCounter.toString()) - 1 : 0;
+                    const balance = contractBalance ? ethers.formatEther(contractBalance) : "0";
+                    
+                    this.logTransaction(`📊 Contract State Analysis:`);
+                    this.logTransaction(`   📈 Total Rooms Created: ${roomCount}`);
+                    this.logTransaction(`   💰 Contract Balance: ${balance} MATIC`);
+                    
+                    if (parseFloat(balance) > 0) {
+                        const usdValue = parseFloat(balance) * 1.0;
+                        this.logTransaction(`   💵 Approximate USD Value: ${usdValue.toFixed(2)}`);
+                        this.logTransaction(`   💡 Contract has real funds - games in progress`);
+                    }
+                    
+                    // Step 4: Check current user capabilities
+                    this.logTransaction("📋 Step 4: Checking current user capabilities...");
+                    const currentAddress = await this.signer.getAddress();
+                    const isOwner = owner && owner.toLowerCase() === currentAddress.toLowerCase();
+                    
+                    if (isOwner) {
+                        this.logTransaction(`✅ You are the contract owner`);
+                        this.logTransaction(`👑 You can use ownerForceEnd() if needed`);
+                    } else {
+                        this.logTransaction(`ℹ️ Connected as regular user: ${currentAddress}`);
+                    }
+                    
+                    this.logTransaction("🎉 MAINNET CONTRACT ANALYSIS COMPLETED!");
+                    this.logTransaction("💡 Contract is ready for real gameplay with real MATIC");
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Contract analysis failed: ${error.message}`);
+                }
+            }
+
+            async checkRoomStatus() {
+                try {
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+                    
+                    const roomCounter = await this.safeContractCall("roomCounter", "Getting room counter");
+                    if (!roomCounter || roomCounter.toString() === "1") {
+                        this.logTransaction("📊 No rooms found on mainnet yet");
+                        this.logTransaction("💡 Create the first mainnet room!");
+                        return;
+                    }
+                    
+                    const totalRooms = Number(roomCounter.toString()) - 1;
+                    this.logTransaction(`📊 Checking status of ${totalRooms} mainnet rooms...`);
+                    
+                    // Check last 3 rooms
+                    const startRoom = Math.max(1, totalRooms - 2);
+                    for (let i = startRoom; i <= totalRooms; i++) {
+                        const room = await this.safeGetRoom(i);
+                        if (room) {
+                            this.displayRoomInfo(i, room);
+                        }
+                    }
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Error checking room status: ${error.message}`);
+                }
+            }
+
+            displayRoomInfo(roomId, room) {
+                try {
+                    this.logTransaction(`📊 Mainnet Room ${roomId} Details:`);
+                    this.logTransaction(`   Player A: ${room.playerA}`);
+                    this.logTransaction(`   Player B: ${room.playerB}`);
+                    const betMatic = ethers.formatEther(room.betAmount);
+                    const betUsd = parseFloat(betMatic) * 1.0;
+                    this.logTransaction(`   Bet Amount: ${betMatic} MATIC (~${betUsd.toFixed(2)})`);
+                    this.logTransaction(`   Score: A=${room.scoreA} vs B=${room.scoreB}`);
+                    this.logTransaction(`   Players Joined: A=${room.playerAJoined}, B=${room.playerBJoined}`);
+                    this.logTransaction(`   Game Status: ${room.isFinished ? "🏁 Finished" : "🎯 Active"}`);
+                    
+                    if (room.lastActionTimestamp && room.lastActionTimestamp.toString() !== "0") {
+                        const lastAction = new Date(Number(room.lastActionTimestamp) * 1000);
+                        this.logTransaction(`   Last Action: ${lastAction.toLocaleString()}`);
+                        
+                        // Check forfeit eligibility
+                        const timeSinceLastAction = Date.now() - (Number(room.lastActionTimestamp) * 1000);
+                        const oneMinute = 1 * 60 * 1000;
+                        if (timeSinceLastAction > oneMinute && !room.isFinished) {
+                            this.logTransaction(`   ⏰ Eligible for forfeit claim (>1 minute inactive)`);
+                        }
+                    }
+                    
+                    // Show winner
+                    if (room.isFinished) {
+                        if (room.scoreA >= 10) {
+                            this.logTransaction(`   🏆 Winner: Player A earned ${betMatic * 2} MATIC`);
+                        } else if (room.scoreB >= 10) {
+                            this.logTransaction(`   🏆 Winner: Player B earned ${betMatic * 2} MATIC`);
+                        } else if (room.playerAForfeited) {
+                            this.logTransaction(`   🏆 Winner: Player B (A forfeited) earned ${betMatic * 2} MATIC`);
+                        } else if (room.playerBForfeited) {
+                            this.logTransaction(`   🏆 Winner: Player A (B forfeited) earned ${betMatic * 2} MATIC`);
+                        }
+                    }
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Error displaying room info: ${error.message}`);
+                }
+            }
+
+            async scoreTestPoint() {
+                try {
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+                    
+                    const roomIdStr = prompt("Enter Room ID to score point:");
+                    if (!roomIdStr) return;
+                    
+                    const roomId = parseInt(roomIdStr);
+                    const room = await this.safeGetRoom(roomId);
+                    
+                    if (!room) {
+                        this.logTransaction(`❌ Room ${roomId} not found`);
+                        return;
+                    }
+                    
+                    const currentAddress = await this.signer.getAddress();
+                    if (currentAddress.toLowerCase() !== room.playerA.toLowerCase() && 
+                        currentAddress.toLowerCase() !== room.playerB.toLowerCase()) {
+                        this.logTransaction(`❌ You are not a participant in room ${roomId}`);
+                        return;
+                    }
+                    
+                    if (!room.playerAJoined || !room.playerBJoined) {
+                        this.logTransaction(`❌ Both players must join before scoring`);
+                        return;
+                    }
+                    
+                    if (room.isFinished) {
+                        this.logTransaction(`❌ Game is already finished`);
+                        return;
+                    }
+                    
+                    const confirmed = confirm(
+                        `Score point in room ${roomId}?\n` +
+                        `Current score: A=${room.scoreA} vs B=${room.scoreB}\n` +
+                        `This will cost gas fees on mainnet.`
+                    );
+                    
+                    if (!confirmed) return;
+                    
+                    this.logTransaction(`🎯 Scoring point for mainnet room ${roomId}...`);
+                    this.logTransaction(`   Current score: A=${room.scoreA} vs B=${room.scoreB}`);
+                    
+                    const tx = await this.contract.scorePoint(roomId, currentAddress);
+                    this.logTransaction(`📝 Transaction submitted: ${tx.hash}`);
+                    this.logTransaction(`🔗 PolygonScan: https://polygonscan.com/tx/${tx.hash}`);
+                    this.logTransaction(`⏳ Waiting for confirmation...`);
+                    
+                    const receipt = await tx.wait();
+                    this.logTransaction(`✅ Point scored! Block: ${receipt.blockNumber}`);
+                    
+                    // Parse events
+                    receipt.logs.forEach(log => {
+                        try {
+                            const parsed = this.contract.interface.parseLog(log);
+                            if (parsed.name === "PointScored") {
+                                this.logTransaction(`🎯 New score: A=${parsed.args.scoreA} vs B=${parsed.args.scoreB}`);
+                            } else if (parsed.name === "MatchEnded") {
+                                this.logTransaction(`🏆 Match ended! Winner: ${parsed.args.winner}`);
+                                const winnerEarnings = ethers.formatEther(room.betAmount) * 2;
+                                this.logTransaction(`💰 Winner earned: ${winnerEarnings} MATIC`);
+                            }
+                        } catch (e) {}
+                    });
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Failed to score point: ${error.message}`);
+                }
+            }
+
+            async claimVictoryTest() {
+                try {
+                    if (!this.contract) {
+                        this.logTransaction("❌ Please load contract first");
+                        return;
+                    }
+                    
+                    const roomIdStr = prompt("Enter Room ID to claim victory:");
+                    if (!roomIdStr) return;
+                    
+                    const roomId = parseInt(roomIdStr);
+                    const room = await this.safeGetRoom(roomId);
+                    
+                    if (!room) {
+                        this.logTransaction(`❌ Room ${roomId} not found`);
+                        return;
+                    }
+                    
+                    const currentAddress = await this.signer.getAddress();
+                    if (currentAddress.toLowerCase() !== room.playerA.toLowerCase() && 
+                        currentAddress.toLowerCase() !== room.playerB.toLowerCase()) {
+                        this.logTransaction(`❌ You are not a participant in room ${roomId}`);
+                        return;
+                    }
+                    
+                    if (room.isFinished) {
+                        this.logTransaction(`❌ Game is already finished`);
+                        return;
+                    }
+                    
+                    // Check timing
+                    const timeSinceLastAction = Date.now() - (Number(room.lastActionTimestamp) * 1000);
+                    const oneMinute = 1 * 60 * 1000;
+                    
+                    if (timeSinceLastAction < oneMinute) {
+                        const remainingTime = oneMinute - timeSinceLastAction;
+                        const remainingSeconds = Math.ceil(remainingTime / 1000);
+                        this.logTransaction(`❌ Must wait ${remainingSeconds} more seconds`);
+                        return;
+                    }
+                    
+                    const winnings = ethers.formatEther(room.betAmount) * 2;
+                    const confirmed = confirm(
+                        `Claim victory by forfeit in room ${roomId}?\n` +
+                        `You will receive: ${winnings} MATIC\n` +
+                        `This will cost gas fees on mainnet.`
+                    );
+                    
+                    if (!confirmed) return;
+                    
+                    this.logTransaction(`⏰ Claiming victory by forfeit for room ${roomId}...`);
+                    this.logTransaction(`   Potential winnings: ${winnings} MATIC`);
+                    
+                    const tx = await this.contract.claimVictoryByForfeit(roomId);
+                    this.logTransaction(`📝 Transaction submitted: ${tx.hash}`);
+                    this.logTransaction(`🔗 PolygonScan: https://polygonscan.com/tx/${tx.hash}`);
+                    this.logTransaction(`⏳ Waiting for confirmation...`);
+                    
+                    const receipt = await tx.wait();
+                    this.logTransaction(`✅ Victory claimed! Block: ${receipt.blockNumber}`);
+                    
+                    // Parse events
+                    receipt.logs.forEach(log => {
+                        try {
+                            const parsed = this.contract.interface.parseLog(log);
+                            if (parsed.name === "VictoryByForfeit") {
+                                this.logTransaction(`🏆 Victory by forfeit! Winner: ${parsed.args.winner}`);
+                            } else if (parsed.name === "WinningsPaid") {
+                                const amount = ethers.formatEther(parsed.args.amount);
+                                this.logTransaction(`💰 Winnings paid: ${amount} MATIC (~${(parseFloat(amount) * 1.0).toFixed(2)})`);
+                            }
+                        } catch (e) {}
+                    });
+                    
+                } catch (error) {
+                    this.logTransaction(`❌ Failed to claim victory: ${error.message}`);
+                }
+            }
+
+            startInactivityMonitor() {
+            let lastActivity = Date.now();
+            const warningThreshold = 5* 60 * 1000; // 5 minutes
+            const forfeitThreshold = 10* 60 * 1000; // 10 minutes
+
+            const resetTimer = () => lastActivity = Date.now();
+
+            ['mousemove', 'keydown', 'click'].forEach(event => {
+                window.addEventListener(event, resetTimer);
+            });
+
+            const checkInactivity = async () => {
+                if (this.roomFinished || !this.currentRoomId) return;
+
+                const now = Date.now();
+                const inactiveTime = now - lastActivity;
+
+                if (inactiveTime > forfeitThreshold) {
+                    this.logTransaction("❌ Inactivité > 10 minutes : Forfait déclenché automatiquement");
+                    await this.handleVoluntaryDisconnect();
+                    return;
+                }
+
+                if (inactiveTime > warningThreshold) {
+                    this.logTransaction("⚠️ Inactivité détectée : attention au forfait imminent");
+                    document.title = "⚠️ INACTIF - Risque de Forfait";
+                    document.body.classList.add("forfeit-warning");
+                }
+
+                setTimeout(checkInactivity, 30 * 1000); // vérifie toutes les 30s
+            };
+
+            setTimeout(checkInactivity, 30 * 1000);
+        }
+
+        
+            updateWalletInfo(address, network) {
+                const walletInfo = document.getElementById('walletInfo');
+                if (walletInfo) {
+                    walletInfo.innerHTML = `
+                        <p><strong>Address:</strong> ${address}</p>
+                        <p><strong>Chain ID:</strong> ${network?.chainId || 'Unknown'}</p>
+                        <p><strong>Network:</strong> ${network?.chainId === 137n ? '✅ Polygon Mainnet' : '⚠️ Wrong Network'}</p>
+                        <p><strong>Status:</strong> 💰 REAL MONEY NETWORK</p>
+                    `;
+                }
+            }
+
+            updateContractInfo() {
+                const contractInfo = document.getElementById('contractInfo');
+                if (contractInfo) {
+                    contractInfo.innerHTML = `
+                        <p><strong>Contract Address:</strong> ${this.contractAddress}</p>
+                        <p><strong>Status:</strong> ✅ Loaded on Mainnet</p>
+                        <p><strong>Network:</strong> Polygon Mainnet</p>
+                        <p><strong>Explorer:</strong> <a href="https://polygonscan.com/address/${this.contractAddress}" target="_blank">View on PolygonScan</a></p>
+                        <p><strong>⚠️ WARNING:</strong> Real MATIC transactions!</p>
+                    `;
+                }
+            }
+
+            logTransaction(message) {
+                const logsContainer = document.getElementById('transactionLogs');
+                if (logsContainer) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+                    logsContainer.appendChild(logEntry);
+                    logsContainer.scrollTop = logsContainer.scrollHeight;
+                }
+                console.log(message);
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the mainnet app
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                try {
+                    window.cashPongBetMainnet = new CashPongBetMainnet();
+                    console.log("✅ CashPongBet Mainnet App initialized");
+                } catch (error) {
+                    console.error("❌ Failed to initialize Mainnet App:", error);
+                }
+            }, 100);
+        });
+    </script>
+
+<br><button id="manualForfeitBtn" style="padding: 10px 20px; font-size: 16px;">Forfait (si inactif)</button>
+<script>
+  const manualBtn = document.getElementById("manualForfeitBtn");
+
+  manualBtn.addEventListener("click", async () => {
+    const app = window.cashPongBetMainnet;
+    const roomId = app?.currentRoomId;
+    const contract = app?.contract;
+    const signer = app?.signer;
+
+    if (!roomId || !contract || !signer) {
+      alert("Conditions non réunies : joueur ou contrat manquant.");
+      return;
+    }
+
+    try {
+      const room = await contract.getRoom(roomId);
+      const now = Math.floor(Date.now() / 1000);
+      const lastAction = Number(room.lastActionTimestamp);
+
+      if (now <= lastAction + 60) {
+        const waitTime = (lastAction + 60) - now;
+        alert(`⏳ Veuillez patienter ${waitTime} secondes avant de réclamer le forfait.`);
+        return;
+      }
+
+      const confirmed = confirm("Êtes-vous sûr de vouloir réclamer le forfait ?");
+      if (!confirmed) return;
+
+      const tx = await contract.claimVictoryByForfeit(roomId);
+      await tx.wait();
+      alert("✅ Forfait déclenché !");
+    } catch (e) {
+      console.error(e);
+      alert("❌ Erreur : " + (e?.message || e));
+    }
+  });
+
+  // Suivi activité
+  window.lastActivityTime = Date.now();
+  ['mousemove', 'keydown', 'click'].forEach(event => {
+    window.addEventListener(event, () => {
+      window.lastActivityTime = Date.now();
+    });
+  });
+</script>
+
+</body>
+</html>

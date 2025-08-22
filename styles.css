@@ -1,0 +1,258 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #222;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  position: relative;
+}
+
+canvas {
+  background-color: black;
+  border-radius: 15px;
+  margin-top: 10px;
+}
+
+#peerIdDisplay {
+  margin-top: 30px;
+  font-weight: bold;
+  color: #0f0;
+  text-align: center;
+}
+
+#authSection,
+#peerControls {
+  display: flex;
+  gap: 10px;
+  margin: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+input,
+button {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+}
+
+button {
+  cursor: pointer;
+  background-color: #555;
+  color: white;
+}
+
+button:hover {
+  background-color: #777;
+}
+
+#playButton {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  padding: 12px 40px;
+  background-color: #28a745;
+  border-radius: 12px;
+  z-index: 999;
+}
+
+#gameOver {
+  font-size: 24px;
+  color: yellow;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+#resetGameBtn,
+#leaveMatchBtn {
+  margin-top: 10px;
+}
+
+/* Inline styles extracted from HTML */
+#connectedWithDisplay {
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #0af;
+  background-color: #111;
+  padding: 10px 8px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-container input {
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 5px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.forgot-password-container {
+  text-align: center;
+  width: 100%;
+}
+
+.forgot-password-link {
+  color: #0af;
+  text-decoration: underline;
+}
+
+#forfeitBtn {
+  display: none;
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#createAccountSection {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-top: 15px;
+}
+
+#metamaskSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+}
+
+.force-reconnect-btn {
+  background: #ff6b35;
+}
+
+#walletAddress {
+  color: #0f0;
+  font-weight: bold;
+}
+
+#peerControls, #joinRoomControls {
+  margin: 20px 0;
+}
+
+#betAmount {
+  width: 160px;
+}
+
+#matchInfo {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #0af;
+}
+
+#gameOver {
+  display: none;
+}
+
+#paymentSection {
+  display: none;
+  margin-top: 20px;
+}
+
+#chatBubble {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background-color: #0a74da;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  z-index: 999;
+}
+
+#unreadBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  display: none;
+}
+
+#chatWindow {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 300px;
+  height: 350px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.chat-header {
+  background-color: #0a74da;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+#chatBox {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  color: black;
+}
+
+.chat-input-container {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+#chatInput {
+  flex: 1;
+  border: none;
+  padding: 10px;
+}
+
+.chat-send-btn {
+  border: none;
+  background-color: #0a74da;
+  color: white;
+  padding: 10px;
+} 

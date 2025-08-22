@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CashPong</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+   <!-- Firebase App (compat version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <!-- Firebase Auth (compat version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <!-- Web3 pour MetaMask -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <!-- Ethers.js pour paiements avec Metamask -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="event-handlers.js"></script>
+</head>
+<body>
+
+  <div id="connectedWithDisplay">
+</div>
+
+  <div id="peerIdDisplay">Ton Peer ID : </div>
+
+  <div id="authSection">
+    <input type="text" id="username" placeholder="YOUR ID">
+    <input type="email" id="email" placeholder="Adresse e-mail">
+    <div class="password-container">
+      <input type="password" id="password" placeholder="Mot de passe">
+      <button type="button" class="password-toggle">👁️</button>
+    </div>    
+    <button id="loginBtn">Se connecter</button>
+    <button id="logoutBtn">Déconnecter</button>
+    <button id="showCreateAccountBtn">Créer un compte</button>
+    <div class="forgot-password-container">
+      <a href="#" id="resetPasswordLink" class="forgot-password-link">Mot de passe oublié ?</a>
+    </div>
+    <button id="forfeitBtn">
+  Forfait
+</button>
+  </div>
+
+  <div id="createAccountSection">
+    <input type="text" id="newUsername" placeholder="Nom d'identifiant (ex: Jony)">
+    <input type="email" id="newEmail" placeholder="Adresse e-mail">
+    <div class="password-container">
+      <input type="password" id="newPassword" placeholder="Mot de passe">
+      <button type="button" class="password-toggle">👁️</button>
+    </div>
+    <button id="createAccountBtn">Créer mon compte</button>
+    <button id="hideCreateAccountBtn">Annuler</button>
+  </div>
+ 
+  <!-- 🦊 Section MetaMask - Toujours visible -->
+  <div id="metamaskSection">
+    <button id="connectWalletBtn">🦊 Connecter Metamask</button>
+    <button id="forceReconnectBtn" class="force-reconnect-btn">🔄 Demo: Force Reconnect</button>
+    <span id="walletAddress"></span>
+  </div>
+
+  <div id="peerControls">
+    <h3>🏠 Créer une Room</h3>
+    <!-- ✅ Adresse Ethereum de l'adversaire -->
+    <input type="text" id="otherPeerId" placeholder="Adresse Ethereum de l'adversaire">
+    <!-- ✅ Mise en ETH -->
+    <input type="number" id="betAmount" placeholder="Montant à miser (ETH)" min="0.001" step="0.001">
+    <!-- ✅ Créer room et miser -->
+    <button id="betButton">Créer Room & Miser</button>
+    <div id="matchInfo"></div>
+  </div>
+
+  <div id="joinRoomControls">
+    <h3>🎮 Rejoindre une Room</h3>
+    <!-- ✅ Room ID à rejoindre -->
+    <input type="text" id="roomIdToJoin" placeholder="Room ID (ex: 1754854660945)">
+    <!-- ✅ Montant automatique affiché -->
+    <div id="joinBetDisplay" style="padding: 10px; background: #f0f0f0; border-radius: 5px; margin: 5px 0; display: none;">
+      💰 Mise requise : <span id="joinBetAmountDisplay">-</span> ETH
+    </div>
+    <!-- ✅ Rejoindre room et payer -->
+    <button id="joinRoomButton">Rejoindre Room & Payer</button>
+    <div id="joinInfo"></div>
+  </div>
+
+  <!-- 🏆 Contrôles de réclamation de victoire -->
+  <div id="claimVictoryControls" style="display: none;">
+    <h3>🏆 Réclamer Victoire</h3>
+    <p>⚠️ Votre adversaire est inactif depuis plus de 60 secondes</p>
+    <button id="claimVictoryButton" style="background: #28a745; color: white; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">
+      🏆 Réclamer Victoire & Récupérer Fonds
+    </button>
+    <div id="claimVictoryInfo"></div>
+  </div>
+
+  <canvas id="myCanvas" width="800" height="400"></canvas>
+
+  <div id="playButtonContainer" style="position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:1000;">
+    <button id="playButton">JOUER</button>
+    <div id="waitingForHost" style="display:none; background:rgba(0,0,0,0.8); color:white; padding:10px; border-radius:5px; text-align:center; margin-top:10px;">
+      En attente que l'hôte démarre la partie...
+    </div>
+  </div>
+
+  <div>
+    <button id="resetGameBtn">Nouvelle Partie</button>
+    <button id="leaveMatchBtn">Quitter la partie</button>
+  </div>
+
+  <div id="gameOver"></div>
+
+<div id="paymentSection">
+  <p id="paymentMessage">Félicitations ! Vous avez gagné 🎉 Cliquez ci-dessous pour recevoir votre gain :</p>
+  <button id="validatePaymentBtn">💰 Valider le paiement</button>
+</div>
+
+<!-- 💬 Bouton de la bulle de chat -->
+  <div id="chatBubble">
+    💬
+    <span id="unreadBadge">0</span>
+  </div>
+
+<!-- 💬 Fenêtre de chat cachée au début -->
+<div id="chatWindow">
+  <div class="chat-header">
+    Chat
+  </div>
+<div id="chatBox"></div>
+  <div class="chat-input-container">
+    <input id="chatInput" type="text" placeholder="Écrivez un message...">
+    <button id="sendMessageBtn" class="chat-send-btn">Envoyer</button>
+  </div>
+</div>
+
+  <script src="script-li-khask-tchuf.js"></script>
+</body>
+</html>

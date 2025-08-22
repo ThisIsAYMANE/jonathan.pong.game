@@ -1,0 +1,53 @@
+{
+  "name": "cashpong-multiplayer",
+  "version": "2.0.0",
+  "description": "CashPong Multiplayer Server with Blockchain Integration",
+  "main": "server-multiplayer.js",
+  "scripts": {
+    "start": "node server-multiplayer.js",
+    "dev": "nodemon server-multiplayer.js",
+    "test": "node test/test-multiplayer.js",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "compile": "npx hardhat compile",
+    "setup": "node setup.js"
+  },
+  "keywords": [
+    "pong",
+    "multiplayer",
+    "blockchain",
+    "ethereum",
+    "socket.io",
+    "game",
+    "crypto",
+    "betting"
+  ],
+  "author": "CashPong Team",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^4.8.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/contracts": "^5.7.0",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.19.4",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "@types/node": "^20.10.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cashpong/multiplayer"
+  },
+  "bugs": {
+    "url": "https://github.com/cashpong/multiplayer/issues"
+  },
+  "homepage": "https://github.com/cashpong/multiplayer#readme"
+}

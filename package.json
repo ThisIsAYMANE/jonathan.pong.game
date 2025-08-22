@@ -1,0 +1,34 @@
+{
+  "name": "cashpongbet",
+  "version": "1.0.0",
+  "description": "A decentralized Pong game betting system on Polygon",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:polygon": "hardhat run scripts/deploy-polygon.js --network polygon",
+    "deploy:amoy": "hardhat run scripts/deploy-test.js --network amoy",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy-test.js --network localhost",
+    "check:balance": "hardhat run scripts/check-polygon-balance.js --network polygon"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "hardhat": "^2.19.0",
+    "socket.io": "^4.8.1",
+    "web3": "^1.9.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "ethers": "^6.8.0"
+  },
+  "keywords": [
+    "polygon",
+    "smart-contract",
+    "betting",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT"
+}
